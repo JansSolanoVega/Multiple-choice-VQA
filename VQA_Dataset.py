@@ -95,7 +95,7 @@ if __name__ == "__main__":
     model, preprocess = clip.load("ViT-B/32", device=device)
 
     dataset = VQA_Dataset()
-    dataset.load_all(preprocess, length=200)
+    dataset.load_all(preprocess, length=200, device=device)
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
     
     found = False
