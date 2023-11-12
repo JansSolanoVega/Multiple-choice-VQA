@@ -81,7 +81,7 @@ class VQA_Dataset(torch.utils.data.Dataset):
                 'image_id': self.image_ids[index],
                 'correct_answer': self.correct_answers[index],
                 'question': self.questions[index],
-                'answer': self.answers[index]
+                'possible_answers': self.answers[index]
             }
            
             return result
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     for i in tqdm(dataloader, desc="Testing"):
         id = i['image_id']
         if id == torch.tensor(26216):
-            print("id: ", id, "question: ", i['question'], "answer: ", i['answer'][0])
+            print("id: ", id, "question: ", i['question'], "possible answers: ", i['possible_answers'])
             break
         
