@@ -38,24 +38,18 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     answers_text = question['multiple_choices']
 
                     # find quesion id and image id in annotations
-                    found = False
                     for annotation in annntoations:
                         if annotation['question_id'] == question_id and annotation['image_id'] == image_id:
                             correct_answer = annotation['multiple_choice_answer']
                             # get the index of the answer in the list of answers
-                            annotation_answers = annotation['answers']
-                            for answer_info in annotation_answers:
-                                answer = answer_info['answer']
-                                if answer == correct_answer:
-                                    index = answer_info['answer_id'] - 1
-                            found = True
-                            break
+                            for i, possible_answer in enumerate(answers_text):
+                                if possible_answer == correct_answer:
+                                    index = i
+                                    break
                         
-                    if not found:
-                        print("ERROR: Could not find answer for question id: ", question_id, " and image id: ", image_id)
-                        continue
+                
 
-                    self.correct_answers.append(torch.tensor(index).unsqueeze(0))
+                    self.correct_answers.append(index)
                     self.image_ids.append(torch.tensor(image_id).unsqueeze(0))
                     self.questions.append(question_text)
                     self.answers.append(answers_text)
@@ -79,9 +73,10 @@ class VQA_Dataset(torch.utils.data.Dataset):
                 'answer_tokens': self.answer_tokens[index],
                 'question_tokens': self.question_tokens[index],
                 'image_id': self.image_ids[index],
-                'correct_answer': self.correct_answers[index],
+                'correct_answer_idx': self.correct_answers[index],
                 'question': self.questions[index],
-                'possible_answers': self.answers[index]
+                'possible_answers': self.answers[index],
+                'correct_answer_text': self.answers[index][self.correct_answers[index]],
             }
            
             return result
@@ -98,6 +93,7 @@ if __name__ == "__main__":
     for i in tqdm(dataloader, desc="Testing"):
         id = i['image_id']
         if id == torch.tensor(26216):
-            print("id: ", id, "question: ", i['question'], "possible answers: ", i['possible_answers'])
+            print("id: ", id, "question: ", i['question'], "Answer: ", i['correct_answer_text'])
+            print("Possible answers: ", i['possible_answers'])
             break
         
