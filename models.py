@@ -45,13 +45,13 @@ class VQA_Model2(torch.nn.Module):
 
         question_features = self.model.encode_text(question_tokens)
 
-        answer_features = torch.stack([self.model.encode_text(batch_answers_tokens) for batch_answers_tokens in answer_tokens])
+        answer_features = torch.stack([self.model.encode_text(batch_answers_tokens) for batch_answers_tokens in answer_tokens]).to(torch.float32)
         
-        answer_features /= answer_features.norm(dim=-1, keepdim=True)
+        answer_features /= answer_features.clone().norm(dim=-1, keepdim=True)
 
         # concatenate the features
         combined_features = torch.cat((image_features, question_features), dim=1).to(self.device)  
-        combined_features /= combined_features.norm(dim=-1, keepdim=True) 
+        combined_features /= combined_features.clone().norm(dim=-1, keepdim=True) 
         combined_features = combined_features.to(torch.float32)
         combined_features = self.fc1(combined_features)
         
@@ -59,6 +59,6 @@ class VQA_Model2(torch.nn.Module):
         if self.device == 'cpu':
             similarity = torch.einsum("bn,bqn->bq", [combined_features, answer_features])
         else:
-            similarity = torch.einsum("bn,bqn->bq", [combined_features, answer_features])
+            similarity = (100*torch.einsum("bn,bqn->bq", [combined_features, answer_features])) #scaling before softmax
         
         return similarity
