@@ -58,9 +58,7 @@ class VQA_Model2(torch.nn.Module):
         # here normalization?
         if self.device == 'cpu':
             similarity = torch.einsum("bn,bqn->bq", [combined_features, answer_features])
-
         else:
-            combined_features = combined_features.to(torch.float16)
-            similarity = combined_features @ answer_features.T # .softmax(dim=-1) no softmax because of cross entropy loss; without multiplying by 100
+            similarity = torch.einsum("bn,bqn->bq", [combined_features, answer_features])
         
         return similarity

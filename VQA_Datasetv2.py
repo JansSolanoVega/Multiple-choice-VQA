@@ -55,13 +55,10 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     self.answers.append(answers_text)
                     
                     self.question_tokens.append(clip.tokenize([question_text]).to(device))
-                    # self.question_tokens.append(processor(text=[question_text], return_tensors="pt", padding=True))
                     self.answer_tokens.append(clip.tokenize(answers_text).to(device)) 
                     
-                    # self.answer_tokens.append(processor(text=answer, return_tensors="pt", padding=True))
                     self.images.append(preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).to(device))
                     # can we process all images at once?
-                    #self.images.append(processor(images=Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id)) ,return_tensors="pt", padding=True))
                     
 
 
@@ -69,18 +66,7 @@ class VQA_Dataset(torch.utils.data.Dataset):
         return len(self.questions)
 
     def __getitem__(self, index):
-            result = {
-                'image': self.images[index],
-                'answer_tokens': self.answer_tokens[index],
-                'question_tokens': self.question_tokens[index],
-                'image_id': self.image_ids[index],
-                'correct_answer_idx': self.correct_answers[index],
-                'question': self.questions[index],
-                'possible_answers': self.answers[index],
-                'correct_answer_text': self.answers[index][self.correct_answers[index]],
-            }
-           
-            return  self.images[index], self.answer_tokens[index], self.question_tokens[index], self.correct_answers[index]
+        return  self.images[index], self.answer_tokens[index], self.question_tokens[index], self.correct_answers[index]
     
 
 if __name__ == "__main__":
