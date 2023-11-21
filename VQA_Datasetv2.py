@@ -6,6 +6,7 @@ import clip
 from torch.utils.data import DataLoader
 import json
 from PIL import Image
+import h5py
 
 
 class VQA_Dataset(torch.utils.data.Dataset):
@@ -135,9 +136,9 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     image = preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device)
 
                     
-                    self.image_features.append(model.encode_image(image).to("cpu"))
-                    self.question_features.append(model.encode_text(question_tokens).to("cpu"))
-                    self.answer_features.append(model.encode_text(answer_tokens).to("cpu"))
+                    self.image_features.append(model.encode_image(image).to(device))
+                    self.question_features.append(model.encode_text(question_tokens).to(device))
+                    self.answer_features.append(model.encode_text(answer_tokens).to(device))
                     
     def save(self, path):
         # save precalculated features and correct answers in a file
@@ -170,6 +171,99 @@ class VQA_Dataset(torch.utils.data.Dataset):
             question_tokens = clip.tokenize([self.questions[index]]).to(self.device)
             return  image, answer_tokens, question_tokens, self.correct_answers[index]
     
+class VQA_Dataset_preloaded(torch.utils.data.Dataset):
+    
+    def __init__(self):
+        self.device = None
+        self.file = None
+        self.image_features = None
+        self.question_features = None
+        self.answer_features = None
+        self.correct_answers = None
+
+
+        
+    def compute_store(self, preprocess, model, device, path, length=100):
+        """
+        preprocess images and tokenize questions and answers and compute embeddings
+        store them in a file
+        """
+        self.device = device
+        with open('Annotations/MultipleChoice_abstract_v002_val2015_questions.json', 'r') as question_file:
+            with open('Annotations/abstract_v002_val2015_annotations.json', 'r') as answer_file:
+                question_data = json.load(question_file)
+                answer_data = json.load(answer_file)
+
+                annntoations = (answer_data['annotations'])
+                questions = (question_data['questions'])
+                
+                with h5py.File(path + 'embeddings.h5', 'a') as hf:
+                    for idx, question in enumerate(tqdm(questions[:length], desc="Preprocessing Images")):
+                        if idx == 0:
+                            image_features_ds = hf.create_dataset('image_features', shape=(length, 512), maxshape=(length, 512))
+                            question_features_ds = hf.create_dataset('question_features', shape=(length, 512), maxshape=(length, 512))
+                            answer_features_ds = hf.create_dataset('answer_features', shape=(length, 18, 512), maxshape=(length, 18, 512))
+                            correct_answers_ds = hf.create_dataset('correct_answers', shape=(length, 1), maxshape=(length, 1))
+
+                            
+                        image_id = question['image_id']
+                        question_text = question['question']
+                        question_id = question['question_id']
+                        answers_text = question['multiple_choices']
+                        # find quesion id and image id in annotations
+                        for annotation in annntoations:
+                            if annotation['question_id'] == question_id and annotation['image_id'] == image_id:
+                                correct_answer = annotation['multiple_choice_answer']
+                                # get the index of the answer in the list of answers
+                                for i, possible_answer in enumerate(answers_text):
+                                    if possible_answer == correct_answer:
+                                        index = i
+                                        break
+                            
+                        correct_answers = index
+                        
+                        question_tokens = clip.tokenize([question_text]).to(device)
+                        answer_tokens = clip.tokenize(answers_text).to(device)
+                        
+                        image = preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device)
+                        image_features = model.encode_image(image)
+                        question_features = model.encode_text(question_tokens)
+                        answer_features = model.encode_text(answer_tokens)
+
+                        self.path = path
+                        # store with h5py
+                        image_features_ds[idx] = image_features.detach().cpu().numpy()
+                        question_features_ds[idx] = question_features.detach().cpu().numpy()
+                        answer_features_ds[idx] = answer_features.detach().cpu().numpy()
+                        correct_answers_ds[idx] = correct_answers
+
+        self.file = h5py.File(path + 'embeddings.h5', 'r')
+        self.image_features = self.file['image_features']
+        self.question_features = self.file['question_features']
+        self.answer_features = self.file['answer_features']
+        self.correct_answers = self.file['correct_answers']
+
+    def load(self, path, device):
+        self.file = h5py.File(path + 'embeddings.h5', 'r')
+        self.image_features = self.file['image_features']
+        self.question_features = self.file['question_features']
+        self.answer_features = self.file['answer_features']
+        self.correct_answers = self.file['correct_answers']
+        self.device = device
+                    
+
+    def __len__(self):
+        return len(self.correct_answers)
+
+    def __getitem__(self, index):
+        image_features = torch.from_numpy(self.image_features[index]).to(self.device)
+        question_features = torch.from_numpy(self.question_features[index]).to(self.device)
+        answer_features = torch.from_numpy(self.answer_features[index]).to(self.device)
+        correct_answers = torch.from_numpy(self.correct_answers[index]).to(self.device)
+        return  image_features, answer_features, question_features, correct_answers
+    
+
+
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
