@@ -226,7 +226,8 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
                         question_tokens = clip.tokenize([question_text]).to(device)
                         answer_tokens = clip.tokenize(answers_text).to(device)
                         
-                        image = preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device)
+                        img = Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))                        
+                        image = preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device)
                         image_features = model.encode_image(image)
                         question_features = model.encode_text(question_tokens)
                         answer_features = model.encode_text(answer_tokens)
