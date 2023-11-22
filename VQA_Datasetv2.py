@@ -62,7 +62,8 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     self.question_tokens.append(clip.tokenize([question_text]).to(device))
                     self.answer_tokens.append(clip.tokenize(answers_text).to(device)) 
                     
-                    self.images.append(preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).to(device))
+                    img = Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))
+                    self.images.append(preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device))
                     # can we process all images at once?
                     
     def load(self, preprocess, device , length=100):

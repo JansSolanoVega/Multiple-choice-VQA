@@ -58,7 +58,9 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     # self.question_tokens.append(processor(text=[question_text], return_tensors="pt", padding=True))
                     self.answer_tokens.append(clip.tokenize(answers_text).to(device).unsqueeze(0)) 
                     # self.answer_tokens.append(processor(text=answer, return_tensors="pt", padding=True))
-                    self.images.append(preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device))
+                    img = Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))
+                    self.images.append(preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device))
+                    #self.images.append(preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device))
                     # can we process all images at once?
                     #self.images.append(processor(images=Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id)) ,return_tensors="pt", padding=True))
                     
