@@ -5,7 +5,8 @@ import clip
 from torch.utils.data import DataLoader
 import json
 from PIL import Image
-
+from torchvision import transforms
+import os
 
 class VQA_Dataset(torch.utils.data.Dataset):
     
@@ -20,10 +21,11 @@ class VQA_Dataset(torch.utils.data.Dataset):
         self.correct_answers = [] 
             # image = preprocess(Image.open("CLIP.png")).unsqueeze(0).to(device)
         
-    def load_all(self, preprocess, device, length=100):
+    def load_all(self, preprocess=None, device="cuda", length=100):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
         
-        with open('Annotations/MultipleChoice_abstract_v002_val2015_questions.json', 'r') as question_file:
-            with open('Annotations/abstract_v002_val2015_annotations.json', 'r') as answer_file:
+        with open(os.path.join(script_dir,'Annotations/MultipleChoice_abstract_v002_val2015_questions.json'), 'r') as question_file:
+            with open(os.path.join(script_dir,'Annotations/abstract_v002_val2015_annotations.json'), 'r') as answer_file:
                 question_data = json.load(question_file)
                 answer_data = json.load(answer_file)
 
@@ -58,8 +60,13 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     # self.question_tokens.append(processor(text=[question_text], return_tensors="pt", padding=True))
                     self.answer_tokens.append(clip.tokenize(answers_text).to(device).unsqueeze(0)) 
                     # self.answer_tokens.append(processor(text=answer, return_tensors="pt", padding=True))
-                    img = Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))
-                    self.images.append(preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device))
+                    img = Image.open(os.path.join(script_dir,"Images/abstract_v002_val2015_0000000{}.png".format(image_id)))
+                    convert_tensor = transforms.ToTensor()
+                    
+                    if preprocess==None:
+                        self.images.append(convert_tensor(img).unsqueeze(0).to(device))
+                    else:
+                        self.images.append(preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device))
                     #self.images.append(preprocess(Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id))).unsqueeze(0).to(device))
                     # can we process all images at once?
                     #self.images.append(processor(images=Image.open("Images/abstract_v002_val2015_0000000{}.png".format(image_id)) ,return_tensors="pt", padding=True))
