@@ -167,6 +167,60 @@ class VQA_Model4(torch.nn.Module):
         self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
         self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
 
+class VQA_Model4_Precalc(torch.nn.Module):
+    """Model that uses already calulated features"""
+    
+    def __init__(self, model, device):
+        super().__init__()
+        self.model = model
+        self.device = device
+        self.fc1 = torch.nn.Linear(1024, 512).to(self.device)
+        self.fc2 = torch.nn.Linear(512, 512).to(self.device)
+        self.initialize_parameters()
+
+    def initialize_parameters(self):
+        # Apply Xavier/Glorot initialization to the linear layer
+        torch.nn.init.xavier_uniform_(self.fc1.weight)
+        torch.nn.init.zeros_(self.fc1.bias.data)
+        torch.nn.init.xavier_uniform_(self.fc2.weight)
+        torch.nn.init.zeros_(self.fc2.bias.data)
+
+    def forward(self, image_features, question_features, answer_features):
+        """returns the logits for the answers"""
+
+        
+        if len(answer_features.shape) != 3:
+                answer_features = answer_features.unsqueeze(0)
+
+
+        # concatenate the features
+        combined_features = torch.cat((image_features, question_features), dim=1).to(self.device)  
+        combined_features /= combined_features.clone().norm(dim=-1, keepdim=True) 
+        combined_features = combined_features.to(torch.float32)
+        combined_features = self.fc1(combined_features)
+        combined_features = torch.nn.functional.relu(combined_features)
+        combined_features = self.fc2(combined_features)
+        combined_features = torch.nn.functional.relu(combined_features)
+        
+        # here normalization?
+        if self.device == 'cpu':
+            similarity = torch.einsum("bn,bqn->bq", [combined_features, answer_features])
+        else:
+            similarity = (100*torch.einsum("bn,bqn->bq", [combined_features, answer_features])) #scaling before softmax
+        
+        return similarity
+    
+    def save(self, path):
+        # do not save the clip model as it is not trained
+        torch.save(self.fc1.state_dict(), path + 'fc1.pth')
+        torch.save(self.fc2.state_dict(), path + 'fc2.pth')
+
+    def load(self, path):
+        self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
+        self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
+
+
+
 class VQA_Model_Precalc(torch.nn.Module):
     """Model that uses already calulated features"""
     def __init__(self, model, device):
