@@ -21,3 +21,7 @@ runs/
 *.egg-info/
 .installed.cfg
 *.egg
+Trained_Models/
+Images_real/
+Images_abstract/
+
