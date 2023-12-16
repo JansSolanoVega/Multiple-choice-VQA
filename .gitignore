@@ -21,6 +21,8 @@ runs/
 *.egg-info/
 .installed.cfg
 *.egg
+
+FineTuningBLIP/torchVersion/
 Trained_Models/
 Images_real/
 Images_abstract/

@@ -1,0 +1,211 @@
+How many stars are in the sky? There are [mask] stars in the sky.
+How many books are on the shelf? There are [mask] books on the shelf.
+How many people attended the event? [mask] people attended the event.
+
+What color is the sun? The sun is [mask] in color.
+What color is the apple? The apple is [mask] in color.
+What color is the car? The car is [mask] in color.
+
+Is the sky blue? Yes, the sky is [mask].
+Is the cat sleeping? Yes, the cat is [mask].
+Is the restaurant open today? [mask], the restaurant is closed today.
+
+Where is the Eiffel Tower located? The Eiffel Tower is located in [mask].
+Where is the nearest supermarket? The nearest supermarket is in [mask].
+Where is the meeting room? The meeting room is in [mask].
+
+What is your favorite movie? My favorite movie is [mask].
+What do you want for dinner? I want [mask] for dinner.
+What time is it? It is [mask].
+
+What is the capital of Japan? The capital of Japan is [mask].
+What is the meaning of life? The meaning of life is [mask].
+What is the purpose of a microscope? The purpose of a microscope is [mask].
+
+Are the flowers in the garden blooming? Yes, the flowers are [mask].
+Are the students in class? Yes, the students are [mask].
+Are the doors locked? No, the doors are [mask].
+
+What is the tallest mountain in the world? The tallest mountain in the world is [mask].
+What is the population of China? The population of China is [mask].
+What is the speed limit on this road? The speed limit on this road is [mask].
+
+Is there a grocery store nearby? Yes, there is a [mask] nearby.
+Is there a post office in this area? No, there is not a [mask] in this area.
+Is there a solution to this problem? Yes, there is a [mask] to this problem.
+
+Does the cat like to play with toys? Yes, the cat [mask] to play with toys.
+Does the computer have a built-in camera? Yes, the computer [mask] have a built-in camera.
+Does the movie have subtitles? Yes, the movie [mask] have subtitles.
+
+Is the woman a doctor? Yes, the woman is a [mask].
+Is the woman wearing a hat? Yes, the woman [mask] wearing a hat.
+Is the woman the CEO of the company? Yes, the woman is [mask] CEO of the company.
+
+Is the man a teacher? No, the man is not a [mask].
+Is the man holding a suitcase? Yes, the man is [mask] holding a suitcase.
+Is the man the owner of the house? Yes, the man is [mask] owner of the house.
+
+What is on the menu for dinner? On the menu for dinner, there is [mask].
+What is on the desk in your room? On the desk in my room, there is [mask].
+What is on the top shelf of the bookcase? On the top shelf of the bookcase, there is [mask].
+
+Is it raining outside? Yes, it is [mask] outside.
+Is it hot in the summer? Yes, it is [mask] in the summer.
+Is it possible to learn a new language quickly? Yes, it is [mask].
+
+Is the girl playing the guitar? Yes, the girl is [mask] playing the guitar.
+Is the girl older than her brother? No, the girl [mask] older than her brother.
+Is the girl the captain of the soccer team? Yes, the girl is [mask] captain of the soccer team.
+
+Is the boy wearing glasses? Yes, the boy is [mask] wearing glasses.
+Is the boy eating lunch? Yes, the boy is [mask] eating lunch.
+Is the boy taller than his sister? No, the boy [mask] taller than his sister.
+
+Is the dog a Labrador? Yes, the dog is [mask] a Labrador.
+Is the dog barking loudly? Yes, the dog [mask] barking loudly.
+Is the dog afraid of thunderstorms? Yes, the dog [mask] afraid of thunderstorms.
+
+Are they siblings? Yes, they are [mask].
+Are they going to the park? Yes, they are [mask] to the park.
+Are they from the same country? No, they are not [mask] from the same country.
+
+Who is the president of the United States? The president of the United States is [mask].
+Who is your favorite actor? My favorite actor is [mask].
+Who is the author of the book you're reading? The author of the book I'm reading is [mask].
+
+What kind of food do you like? I like [mask] food.
+What kind of animal is a penguin? A penguin is [mask] kind of animal.
+What kind of music do you listen to? I listen to [mask] music.
+
+What color are the leaves in autumn? The leaves in autumn are [mask] in color.
+What color are the birds in the garden? The birds in the garden are [mask] in color.
+What color are the shoes on the shelf? The shoes on the shelf are [mask] in color.
+
+What is in the refrigerator? In the refrigerator, there is [mask].
+What is in the drawer? In the drawer, there is [mask].
+What is in the bag? In the bag, there is [mask].
+
+What is the man known for? The man is known for [mask].
+What is the man holding in his hand? The man is holding [mask] in his hand.
+What is the man's favorite hobby? The man's favorite hobby is [mask].
+
+Is there a library in the city? Yes, there is a [mask] in the city.
+Is there a movie theater nearby? Yes, there is a [mask] nearby.
+Is there a park in the neighborhood? Yes, there is a [mask] in the neighborhood.
+
+What is the woman doing? The woman is [mask].
+What is the woman's occupation? The woman's occupation is [mask].
+What is the woman's favorite book? The woman's favorite book is [mask].
+
+What are the ingredients in the recipe? The ingredients in the recipe are [mask].
+What are the benefits of exercise? The benefits of exercise include [mask].
+What are the symptoms of the flu? The symptoms of the flu are [mask].
+
+What is the boy playing with? The boy is playing with [mask].
+What is the boy's favorite subject? The boy's favorite subject is [mask].
+What is the boy's dream job? The boy's dream job is [mask].
+
+Are there flowers in the garden? Yes, there are [mask] in the garden.
+Are there mountains in the distance? Yes, there are [mask] in the distance.
+Are there any birds in the sky? Yes, there are [mask] in the sky.
+
+What is the girl's favorite color? The girl's favorite color is [mask].
+What is the girl studying in school? The girl is studying [mask] in school.
+What is the girl's talent? The girl's talent is [mask].
+
+Is this a book? Yes, this is [mask] a book.
+Is this a good time to call? Yes, this is [mask] a good time to call.
+Is this the right way to the museum? Yes, this is [mask] the right way to the museum.
+
+What is the little boy doing? The little boy is [mask].
+What is the little girl's favorite toy? The little girl's favorite toy is [mask].
+What is the little dog's name? The little dog's name is [mask].
+
+Is the TV turned on? Yes, the TV [mask] turned on.
+Is the TV working properly? Yes, the TV [mask] working properly.
+Is the TV connected to the internet? Yes, the TV [mask] connected to the internet.
+
+How many animals are in the zoo? There are [mask] animals in the zoo.
+How many people are in the room? There are [mask] people in the room.
+How many clouds are in the sky? There are [mask] clouds in the sky.
+
+Is that your backpack? Yes, that is [mask] backpack.
+Is that a new phone? Yes, that is [mask] new phone.
+Is that the same car we saw yesterday? Yes, that is [mask] same car we saw yesterday.
+
+Is the little girl happy? Yes, the little girl [mask] happy.
+Is the little boy sleeping? Yes, the little boy [mask] sleeping.
+Is the little cat hungry? Yes, the little cat [mask] hungry.
+
+Is he your friend? Yes, he is [mask] friend.
+Is he good at playing the piano? Yes, he is [mask] at playing the piano.
+Is he going to the party? Yes, he is [mask] to the party.
+
+Are these your shoes? Yes, these are [mask] shoes.
+Are these the right keys? Yes, these are [mask] right keys.
+Are these the only options? Yes, these are [mask] only options.
+
+How many trees are in the park? There are [mask] trees in the park.
+How many pillows are on the bed? There are [mask] pillows on the bed.
+How many windows are in the house? There are [mask] windows in the house.
+
+Are the people happy? Yes, the people [mask] happy.
+Are the people waiting in line? Yes, the people [mask] waiting in line.
+Are the people at the party? Yes, the people [mask] at the party.
+
+Why is the sky blue? The sky is blue because [mask].
+Why is the water wet? The water is wet because [mask].
+Why is the sun hot? The sun is hot because [mask].
+
+Is the young man a student? Yes, the young man is a [mask].
+Is the young woman a teacher? Yes, the young woman is a [mask].
+Is the young boy playing soccer? Yes, the young boy is [mask] playing soccer.
+
+How many windows are in the building? There are [mask] windows in the building.
+How many people are in the restaurant? There are [mask] people in the restaurant.
+How many clouds are in the sky today? There are [mask] clouds in the sky today.
+
+Is this a good book? Yes, this is [mask] a good book.
+Is this a real diamond? Yes, this is [mask] real diamond.
+Is this a safe neighborhood? Yes, this is [mask] a safe neighborhood.
+
+What is the little cat playing with? The little cat is playing with [mask].
+What is the little dog's name? The little dog's name is [mask].
+What is the little girl doing? The little girl is [mask].
+
+Is the TV turned off? Yes, the TV [mask] turned off.
+Is the TV broken? No, the TV [mask] broken.
+Is the TV too loud? No, the TV [mask] too loud.
+
+How many animals are in the zoo? There are [mask] animals in the zoo.
+How many pictures are on the wall? There are [mask] pictures on the wall.
+How many plants are in the garden? There are [mask] plants in the garden.
+
+How many birds are in the tree? There are [mask] birds in the tree.
+How many people are at the party? There are [mask] people at the party.
+How many clouds are in the sky today? There are [mask] clouds in the sky today.
+
+What color is the sky? The sky is [mask] in color.
+What color is the car? The car is [mask] in color.
+What color are the flowers in the garden? The flowers in the garden are [mask] in color.
+
+What is the baby girl's name? The baby girl's name is [mask].
+What is the baby boy's favorite toy? The baby boy's favorite toy is [mask].
+What is the baby doing? The baby is [mask].
+
+Is anyone home? Yes, [mask] is home.
+Is anyone coming to the party? Yes, [mask] is coming to the party.
+Is anyone using the computer? Yes, [mask] is using the computer.
+
+What color is the sky at night? The sky at night is [mask] in color.
+What color is the moon? The moon is [mask] in color.
+What color is the grass? The grass is [mask] in color.
+
+How many bushes are in the garden? There are [mask] bushes in the garden.
+How many cars are in the parking lot? There are [mask] cars in the parking lot.
+How many shoes are in the closet? There are [mask] shoes in the closet.
+
+Is the old man reading a book? Yes, the old man is [mask] reading a book.
+Is the old woman at the park? Yes, the old woman [mask] at the park.
+Is the old dog sleeping? Yes, the old dog [mask] sleeping.
