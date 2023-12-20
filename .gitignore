@@ -22,4 +22,5 @@ runs/
 .installed.cfg
 *.egg
 
-FineTuningBLIP/torchVersion/
+#FineTuningBLIP/torchVersion/
+*.zip
