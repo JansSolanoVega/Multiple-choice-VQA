@@ -22,5 +22,9 @@ runs/
 .installed.cfg
 *.egg
 
-#FineTuningBLIP/torchVersion/
 *.zip
+FineTuningBLIP/torchVersion/
+Trained_Models/
+Images_real/
+Images_abstract/
+

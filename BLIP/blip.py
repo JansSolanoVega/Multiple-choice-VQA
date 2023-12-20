@@ -43,10 +43,8 @@ class BLIP_Base(nn.Module):
         med_config.encoder_width = vision_width
         self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)  
         
-        text_width = self.text_encoder.config.hidden_size
-        
-        self.vision_proj = nn.Linear(vision_width, embed_dim)
-        self.text_proj = nn.Linear(text_width, embed_dim)
+        self.text_width = self.text_encoder.config.hidden_size
+        print(self.text_encoder)
 
 
 
@@ -65,7 +63,8 @@ class BLIP_Base(nn.Module):
             # return text features
             text_output = self.text_encoder(text.input_ids, attention_mask = text.attention_mask,                      
                                             return_dict = True, mode = 'text') 
-            text_output =  self.text_proj(text_output.last_hidden_state[:,0])
+            # get cls token
+            text_output =  text_output.last_hidden_state[:,0]
             return text_output
         
         elif mode=='multimodal':
@@ -80,7 +79,7 @@ class BLIP_Base(nn.Module):
                                        encoder_attention_mask = image_atts,      
                                        return_dict = True,
                                       )     
-            output = self.text_proj(output.last_hidden_state[:,0])  
+            output = output.last_hidden_state[:,0]
             return output
         
         
