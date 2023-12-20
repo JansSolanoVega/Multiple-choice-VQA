@@ -121,6 +121,121 @@ class VQA_Dataset_TorchVersion(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return  self.images[index], self.questions[index], self.answers[index], self.correct_answers[index]
+
+class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
+    
+    def __init__(self, device):
+        self.file = None
+        self.imgs = None
+        self.questions = None
+        self.multiple_answers = None
+        self.correct_answers = None
+
+        self.max_length = 20
+        self.image_height = 480
+        self.image_width = 480
+        self.num_answers = 18
+        self.device = device
+        
+    def compute_store(self, tokenizer, length=100, fileName="embeddingsBLIP.h5"):
+        """
+        preprocess images and tokenize questions and answers and compute embeddings
+        store them in a file
+        """
+        self.fileName = fileName
+        self.tokenizer = tokenizer
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        with open(os.path.join(script_dir,'Annotations/MultipleChoice_abstract_v002_val2015_questions.json'), 'r') as question_file:
+            with open(os.path.join(script_dir,'Annotations/abstract_v002_val2015_annotations.json'), 'r') as answer_file:
+                question_data = json.load(question_file)
+                answer_data = json.load(answer_file)
+
+                annntoations = (answer_data['annotations'])
+                questions = (question_data['questions'])
+                
+                with h5py.File(self.fileName, 'a') as hf:
+                    for idx, question in enumerate(tqdm(questions[:length], desc="Preprocessing Images")):
+                        if idx == 0:
+                            imgs_ds = hf.create_dataset('imgs', shape=(length, 3, self.image_height, self.image_width), maxshape=(length, 3, self.image_height, self.image_width))
+                            questions_input_ids_ds = hf.create_dataset('questions_input_ids', shape=(length, self.max_length), maxshape=(length, self.max_length))
+                            questions_attention_mask_ds = hf.create_dataset('questions_attention_mask', shape=(length, self.max_length), maxshape=(length, self.max_length))
+                            multiple_answers_input_ids_ds = hf.create_dataset('multiple_answers_input_ids', shape=(length, self.num_answers, self.max_length), maxshape=(length, self.num_answers, None))
+                            multiple_answers_attention_mask_ds = hf.create_dataset('multiple_answers_attention_mask', shape=(length, self.num_answers, self.max_length), maxshape=(length, self.num_answers, None))
+                            correct_answers_input_ids_ds = hf.create_dataset('correct_answers_input_ids', shape=(length, self.max_length), maxshape=(length, self.max_length))
+                            correct_answers_attention_mask_ds = hf.create_dataset('correct_answers_attention_mask', shape=(length, self.max_length), maxshape=(length, self.max_length))
+
+                            
+                        image_id = question['image_id']
+                        question_id = question['question_id']
+                        answers_text = question['multiple_choices']
+                        
+                        # find quesion id and image id in annotations
+                        for annotation in annntoations:
+                            if annotation['question_id'] == question_id and annotation['image_id'] == image_id:
+                                correct_answer = annotation['multiple_choice_answer']
+                                # get the index of the answer in the list of answers
+                                for i, possible_answer in enumerate(answers_text):
+                                    if possible_answer == correct_answer:
+                                        index = i
+                                        break
+
+                        #Image encoding                                            
+                        raw_image = Image.open(os.path.join(script_dir,"Images/abstract_v002_val2015_0000000{}.png".format(image_id))).convert('RGB')
+                        transform = transforms.Compose([
+                            transforms.Resize((self.image_height,self.image_width),interpolation=InterpolationMode.BICUBIC),
+                            transforms.ToTensor(),
+                            transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
+                            ])
+                        img = transform(raw_image).unsqueeze(0)
+
+                        ##Question encoding
+                        question_text = question['question']
+                        question = self.tokenizer(question_text, padding='max_length', truncation=True, max_length=self.max_length, return_tensors="pt").to(self.device) 
+                        question.input_ids[:,0] = self.tokenizer.enc_token_id
+
+                        ##Correct answer encoding
+                        correct_answer_text = answers_text[index]   
+                        correct_answer = self.tokenizer(correct_answer_text, padding='max_length', truncation=True, max_length=self.max_length, return_tensors="pt").to(self.device) 
+                        correct_answer.input_ids[:,0] = self.tokenizer.enc_token_id
+
+                        ##MC answers encoding
+                        multiple_answers = self.tokenizer(answers_text, padding='max_length', truncation=True, max_length=self.max_length, return_tensors="pt").to(self.device)
+                        multiple_answers.input_ids[:,0] = self.tokenizer.bos_token_id
+
+                        #Store with h5py
+                        imgs_ds[idx] = img.cpu().numpy()
+
+                        correct_answers_input_ids_ds[idx] = correct_answer.input_ids.detach().cpu().numpy()[0]
+                        correct_answers_attention_mask_ds[idx] = correct_answer.attention_mask.detach().cpu().numpy()[0]
+
+                        questions_input_ids_ds[idx] = question.input_ids.detach().cpu().numpy()[0]
+                        questions_attention_mask_ds[idx] = question.attention_mask.detach().cpu().numpy()[0]
+
+                        multiple_answers_input_ids_ds[idx] = multiple_answers.input_ids.detach().cpu().numpy()
+                        multiple_answers_attention_mask_ds[idx] = multiple_answers.attention_mask.detach().cpu().numpy()
+
+    def load(self, fileName="embeddingsBLIP.h5"):
+        self.file = h5py.File(fileName, 'r')
+        self.imgs = self.file["imgs"]
+        self.questions_input_ids = self.file["questions_input_ids"]
+        self.questions_attention_mask = self.file["questions_attention_mask"]
+        self.multiple_answers_input_ids = self.file["multiple_answers_input_ids"]
+        self.multiple_answers_attention_mask = self.file["multiple_answers_attention_mask"]
+        self.correct_answers_input_ids = self.file["correct_answers_input_ids"]
+        self.correct_answers_attention_mask = self.file["correct_answers_attention_mask"]
+
+    def __len__(self):
+        return len(self.imgs)
+
+    def __getitem__(self, index):
+        question = {"input_ids": torch.from_numpy(self.questions_input_ids[index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(self.questions_attention_mask[index]).type(torch.int64).unsqueeze(0).to(self.device)}
+        multiple_answer = {"input_ids": torch.from_numpy(self.multiple_answers_input_ids[index]).type(torch.int64).to(self.device), "attention_mask":torch.from_numpy(self.multiple_answers_attention_mask[index]).type(torch.int64).to(self.device)}
+        correct_answer = {"input_ids": torch.from_numpy(self.correct_answers_input_ids[index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(self.correct_answers_attention_mask[index]).type(torch.int64).unsqueeze(0).to(self.device)}
+        imgs = torch.from_numpy(self.imgs[index]).unsqueeze(0).to(self.device)
+        encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
+        return  encoding
     
 class VQA_Dataset_preloaded(torch.utils.data.Dataset):
     
