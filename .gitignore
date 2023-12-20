@@ -20,7 +20,7 @@ var/
 runs/
 *.egg-info/
 .installed.cfg
-*.egg
+*.eg
 
 *.zip
 FineTuningBLIP/torchVersion/
