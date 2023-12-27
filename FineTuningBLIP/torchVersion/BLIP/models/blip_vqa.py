@@ -114,6 +114,19 @@ class BLIP_VQA(nn.Module):
                 max_ids = self.rank_answer(question_output.last_hidden_state, question["attention_mask"], 
                                            answer["input_ids"], answer["attention_mask"], k_test) 
                 return max_ids
+
+            elif inference=='gradcam':
+                input_ids = answer["input_ids"]
+                answer_targets = input_ids.masked_fill(input_ids == self.tokenizer.pad_token_id, -100)
+                output = self.text_decoder(input_ids, 
+                                                attention_mask = answer["attention_mask"], 
+                                                encoder_hidden_states = question_output.last_hidden_state,
+                                                encoder_attention_mask = question["attention_mask"],                  
+                                                labels = answer_targets,
+                                                return_dict = True,   
+                                                reduction = 'none',
+                                                ) 
+                return output.loss
             
 
  

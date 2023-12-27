@@ -132,8 +132,8 @@ class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
         self.correct_answers = None
 
         self.max_length = 20
-        self.image_height = 480
-        self.image_width = 480
+        self.image_height = 640
+        self.image_width = 640
         self.num_answers = 18
         self.device = device
         
