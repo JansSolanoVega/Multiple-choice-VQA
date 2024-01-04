@@ -367,7 +367,7 @@ class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
 
 
         
-    def compute_store(self, image_question_model, answer_model, device, path, name="train",length=100, mode="scale"):
+    def compute_store(self, image_question_model, answer_model, device, path, name="train",length=100, mode="base", each = False):
         """
         preprocess images and tokenize questions and answers and compute embeddings
         store them in a file
@@ -385,8 +385,8 @@ class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
                     for idx, question in enumerate(tqdm(questions[:length], desc="Preprocessing Images")):
                         if idx == 0:
                             #image_features_ds = hf.create_dataset('image_features', shape=(length, 512), maxshape=(length, 512))
-                            image_question_features_ds = hf.create_dataset('question_features', shape=(length, 512), maxshape=(length, 512))
-                            answer_features_ds = hf.create_dataset('answer_features', shape=(length, 18, 512), maxshape=(length, 18, 512))
+                            image_question_features_ds = hf.create_dataset('image_question_features', shape=(length, 768), maxshape=(length, 768))
+                            answer_features_ds = hf.create_dataset('answer_features', shape=(length, 18, 768), maxshape=(length, 18, 768))
                             correct_answers_ds = hf.create_dataset('correct_answers', shape=(length, 1), maxshape=(length, 1))
 
                             
@@ -417,9 +417,18 @@ class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
                             ]) 
                         
                         image = transform(img).unsqueeze(0).to(self.device)
-                            
-                        question_features = image_question_model(image, question_text, mode='multimodal').to(device)
-                        answer_features = answer_model(image, answers_text, mode='text').to(device)
+                        
+                        if mode == "base":
+                            question_features = image_question_model(image, question_text, mode='multimodal').to(device)
+                            if each:
+                                answer_features = torch.zeros((18,768)).to(device)
+                                for c, answer in enumerate(answers_text):
+                                    answer_features[c] = answer_model(image, answer, mode='text').squeeze(0).to(device)
+                            else:
+                                answer_features = answer_model(image, answers_text, mode='text').to(device)
+                        elif mode == "itm":
+                            # only 1 model is used
+                            question_features = image_question_model(image, question_text, answers_text).to(device)
                         
 
                         self.path = path
@@ -455,7 +464,7 @@ class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
         image_question_features = torch.from_numpy(self.question_features[index]).to(self.device)
         answer_features = torch.from_numpy(self.answer_features[index]).to(self.device)
         correct_answers = torch.from_numpy(self.correct_answers[index]).to(self.device)
-        return  answer_features, image_question_features, correct_answers
+        return None, answer_features, image_question_features, correct_answers
   
 class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
     def __init__(self):
@@ -472,9 +481,9 @@ class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
         self.preprocess = preprocess
         self.name = name
         if name == "train":
-            file = 'Full_annotations_sentences.json'
+            file = 'sentences_train.json'
         elif name == "val":
-            file = 'unique_annotations_sentences.json'
+            file = 'sentences_val.json'
         
         with open(file, 'r') as f:
             data = json.load(f)
