@@ -25,6 +25,7 @@ runs/
 *.zip
 FineTuningBLIP/torchVersion/
 Trained_Models/
+Images/
 Images_real/
 Images_abstract/
 

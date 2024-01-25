@@ -88,6 +88,7 @@ class BLIP_VQA(nn.Module):
                                                 encoder_attention_mask = image_atts,                                    
                                                 return_dict = True) 
             
+            
             if inference=='generate':
                 num_beams = 3
                 question_states = question_output.last_hidden_state.repeat_interleave(num_beams,dim=0)

@@ -11,6 +11,8 @@ import h5py
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 import random
+import os 
+from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 class VQA_Dataset(torch.utils.data.Dataset):
     
@@ -238,17 +240,40 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
         self.question_features = None
         self.answer_features = None
         self.correct_answers = None
+        self.answer_types = None
 
 
         
-    def compute_store(self, preprocess, model, device, path, name="train",length=100, mode="scale"):
+    def compute_store(self, preprocess, model, device, path, name="train",length=100, mode="scale", real=True, sentences=True):
         """
         preprocess images and tokenize questions and answers and compute embeddings
         store them in a file
         """
         self.device = device
-        with open('Annotations/MultipleChoice_mscoco_'+ name + '2014_questions.json', 'r') as question_file:
-            with open('Annotations/mscoco_'+ name + '2014_annotations.json', 'r') as answer_file:
+        conversion_answer_type = {"yes/no": 0, "number": 1, "other": 2}
+
+        if real:
+            imagesType = "mscoco"
+        else:
+            imagesType = "abstract"
+        
+        self.fileName = imagesType + "_" + path
+
+        year = {"mscoco": "2014", "abstract": "2015"}
+        imgname_start = {"mscoco": "COCO", "abstract": "abstract_v002"}
+        img_extension = {"mscoco": "jpg", "abstract": "png"}
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.sentences = True
+        if(self.sentences):
+            with open('demonstartion_t5.json') as f:
+                demonstrations = json.load(f)
+            model_name_t5 = "google/t5-v1_1-small"
+            model_t5 = T5ForConditionalGeneration.from_pretrained(model_name_t5).to(device)
+            tokenizer_t5 = T5Tokenizer.from_pretrained(model_name_t5, legacy=False)
+        
+
+        with open(os.path.join(script_dir,'Annotations/MultipleChoice_'+imagesType+'_'+ name + '2014_questions.json'), 'r') as question_file:
+            with open(os.path.join(script_dir,'Annotations/'+imagesType+'_'+ name + '2014_annotations.json'), 'r') as answer_file:
                 question_data = json.load(question_file)
                 answer_data = json.load(answer_file)
 
@@ -258,26 +283,46 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
                 with h5py.File(path + name + '_embeddings.h5', 'a') as hf:
                     for idx, question in enumerate(tqdm(questions[:length], desc="Preprocessing Images")):
                         if idx == 0:
-                            image_features_ds = hf.create_dataset('image_features', shape=(length, 512), maxshape=(length, 512))
-                            question_features_ds = hf.create_dataset('question_features', shape=(length, 512), maxshape=(length, 512))
-                            answer_features_ds = hf.create_dataset('answer_features', shape=(length, 18, 512), maxshape=(length, 18, 512))
-                            correct_answers_ds = hf.create_dataset('correct_answers', shape=(length, 1), maxshape=(length, 1))
+                            image_features_ds = hf.create_dataset('image_features', shape=(length, 512))#, maxshape=(length, 512))
+                            question_features_ds = hf.create_dataset('question_features', shape=(length, 512))#, maxshape=(length, 512))
+                            answer_features_ds = hf.create_dataset('answer_features', shape=(length, 18, 512))#, maxshape=(length, 18, 512))
+                            correct_answers_ds = hf.create_dataset('correct_answers', shape=(length, 1))#, maxshape=(length, 1))
+                            answer_types_ds = hf.create_dataset('answer_types', shape=(length, 1))
 
                             
                         image_id = question['image_id']
                         question_text = question['question']
                         question_id = question['question_id']
                         answers_text = question['multiple_choices']
+                        
                         # find quesion id and image id in annotations
                         for annotation in annntoations:
                             if annotation['question_id'] == question_id and annotation['image_id'] == image_id:
                                 correct_answer = annotation['multiple_choice_answer']
+                                answer_type = annotation['answer_type']
                                 # get the index of the answer in the list of answers
                                 for i, possible_answer in enumerate(answers_text):
                                     if possible_answer == correct_answer:
                                         index = i
                                         break
-                            
+                        
+                        if self.sentences:
+                            for start_type in demonstrations:
+                                if question_text.lower().startswith(start_type):
+                                    demostrations_for_question = demonstrations[start_type]
+                                    generated_template = generate_masked_template(question_text, demostrations_for_question, model_t5, tokenizer_t5)
+                                    try:
+                                        generated_template = generated_template.split(".")[0]+"."
+                                        #if start_type=="is" or start_type=="are":
+                                        if "[mask]" in generated_template:
+                                            #print(question_text, generated_template)
+                                            answers_text = [generated_template.replace("[mask]", f"{answer}") for answer in answers_text]#try except    
+                                        else:
+                                            break
+                                    except:
+                                        break
+                                    break
+                        #print(answers_text)
                         correct_answers = index
                         
                         question_tokens = clip.tokenize([question_text]).to(device)
@@ -287,7 +332,7 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
                         # add leading zeros to image id
                         image_id = str(image_id).zfill(12)
 
-                        img = Image.open("Images_real/" + name + "2014/COCO_" + name + "2014_{}.jpg".format(image_id))
+                        img = Image.open(os.path.join(script_dir, "Images", imagesType, imgname_start[imagesType] + "_" + name + year[imagesType] + "_{}."+img_extension[imagesType]).format(image_id))
                         if mode == "scale":
                             img = img.resize((400, 400), Image.Resampling.LANCZOS)
                             image = preprocess(img).unsqueeze(0).to(device)
@@ -322,12 +367,14 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
                         question_features_ds[idx] = question_features.detach().cpu().numpy()
                         answer_features_ds[idx] = answer_features.detach().cpu().numpy()
                         correct_answers_ds[idx] = correct_answers
+                        answer_types_ds[idx] = conversion_answer_type[answer_type]
 
         self.file = h5py.File(path +  name + '_embeddings.h5', 'r')
         self.image_features = self.file['image_features']
         self.question_features = self.file['question_features']
         self.answer_features = self.file['answer_features']
         self.correct_answers = self.file['correct_answers']
+        self.answer_types = self.file['answer_types']
 
     def load(self, path, device, name="train", length=100):
         # load precalculated features and correct answers from a file
@@ -339,7 +386,7 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
         self.question_features = self.file['question_features'][:length]
         self.answer_features = self.file['answer_features'][:length]
         self.correct_answers = self.file['correct_answers'][:length]
-                    
+        self.answer_types = self.file['answer_types'][:length]                 
 
     def __len__(self):
         return len(self.correct_answers)
@@ -349,8 +396,9 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
         question_features = torch.from_numpy(self.question_features[index]).to(self.device)
         answer_features = torch.from_numpy(self.answer_features[index]).to(self.device)
         correct_answers = torch.from_numpy(self.correct_answers[index]).to(self.device)
-        return  image_features, answer_features, question_features, correct_answers
-    
+        answer_types = torch.from_numpy(self.answer_types[index]).to(self.device)
+        return  image_features, answer_features, question_features, correct_answers, answer_types
+'''
 class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
     
     def __init__(self):
@@ -464,8 +512,8 @@ class VQA_Dataset_BLIP_preloaded(torch.utils.data.Dataset):
         image_question_features = torch.from_numpy(self.question_features[index]).to(self.device)
         answer_features = torch.from_numpy(self.answer_features[index]).to(self.device)
         correct_answers = torch.from_numpy(self.correct_answers[index]).to(self.device)
-        return None, answer_features, image_question_features, correct_answers
-  
+        return  answer_features, image_question_features, correct_answers
+'''   
 class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
     def __init__(self):
         self.image_ids = []
@@ -473,8 +521,9 @@ class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
         self.questions = []
         self.answers = []
         self.correct_answers = []
+        self.answer_types = []
         
-    def load(self,preprocess, device, name="train", length=100):
+    def load(self,preprocess, device, name="val", length=100):
         # load precalculated features and correct answers from a json file
         # only load a subset of the data
         self.device = device
@@ -484,18 +533,26 @@ class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
             file = 'sentences_train.json'
         elif name == "val":
             file = 'sentences_val.json'
-        
+        conversion_answer_type = {"yes/no": 0, "number": 1, "other": 2}
+
         with open(file, 'r') as f:
             data = json.load(f)
             data = data['data']
-            for pair in data[:length]:
+            for pair in tqdm(data[:length]):
                 self.image_ids.append(pair['image_id']) 
                 self.question_ids.append(pair['question_id'])
                 self.questions.append(pair['question'])
                 self.answers.append(pair['answers'])
                 self.correct_answers.append(pair['correct_answer'])
-
-
+                with open('Annotations/mscoco_'+ self.name+ '2014_annotations.json', 'r') as answer_file:
+                    answer_data = json.load(answer_file)
+                    annntoations = (answer_data['annotations'])
+                    for annotation in annntoations:
+                        if annotation['question_id'] == pair['question_id'] and annotation['image_id'] == pair['image_id']:
+                            answer_type = annotation['answer_type']
+                            break
+                    self.answer_types.append(conversion_answer_type[answer_type])
+                
     def __len__(self):
         return len(self.correct_answers)
     
@@ -503,12 +560,29 @@ class  VQA_Dataset_Sentences(torch.utils.data.Dataset):
         image_id = self.image_ids[index]
         # open image
         image_id = str(image_id).zfill(12)
-        img = Image.open("Images_real/" + self.name + "2014/COCO_" + self.name + "2014_{}.jpg".format(image_id))
+        img = Image.open("Images/mscoco/"+ "COCO_" + self.name + "2014_{}.jpg".format(image_id))
         image = self.preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).to(self.device)
         answer_tokens = clip.tokenize(self.answers[index]).to(self.device)
         question_tokens = clip.tokenize([self.questions[index]]).to(self.device)
 
-        return  image, answer_tokens, question_tokens, self.correct_answers[index]
+        return  image, answer_tokens, question_tokens, self.correct_answers[index], self.answer_types[index]
+
+def generate_masked_template(question, demonstrations, model, tokenizer):
+    # Construct input with explicit instruction to generate a template
+    input_text = f"{question}<extra_id_0>.{' '.join(demonstrations)}"
+    # Tokenize the input
+    input_ids = tokenizer.encode(input_text, return_tensors="pt").cuda()
+
+    # Generate output by filling in the <extra_id_0> token
+    output_ids = model.generate(input_ids, max_length=100, num_beams=5, no_repeat_ngram_size=2, top_k=50, top_p=0.95)
+
+    # Decode the generated output
+    generated_template = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+
+    # only until first [mask]
+    generated_template = generated_template.split("[mask]")[0] + "[mask]."
+
+    return generated_template
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
