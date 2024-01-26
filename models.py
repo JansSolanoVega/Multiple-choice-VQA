@@ -1,6 +1,7 @@
 import torch
 import transformers
 import torch.nn.functional as F
+import os
 
 class VQA_Model(torch.nn.Module):
     """uses the model from clip like in evaluation method"""
@@ -199,12 +200,12 @@ class VQA_Model1_Precalc(torch.nn.Module):
     
     def save(self, path):
         # do not save the clip model as it is not trained
+        path = os.path.join("results_training_CLIP", path)
         torch.save(self.fc1.state_dict(), path + 'fc1.pth')
-        torch.save(self.fc2.state_dict(), path + 'fc2.pth')
 
     def load(self, path):
+        path = os.path.join("results_training_CLIP", path)
         self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
-        self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
 
 class VQA_Model4_Precalc(torch.nn.Module):
     """Model that uses already calulated features"""
@@ -258,6 +259,107 @@ class VQA_Model4_Precalc(torch.nn.Module):
         self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
         self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
 
+class VQA_Model_Discr(torch.nn.Module):
+    """Model that uses already calulated features"""
+    def __init__(self, model, device):
+        super().__init__()
+        self.model = model
+        self.device = device
+        self.fc1 = torch.nn.Linear(1024, 768).to(self.device)
+        self.fc2 = torch.nn.Linear(768, 512).to(self.device)
+        self.initialize_parameters()
+
+
+    def initialize_parameters(self):
+        # Apply Xavier/Glorot initialization to the linear layer
+        torch.nn.init.xavier_uniform_(self.fc1.weight)
+        torch.nn.init.zeros_(self.fc1.bias.data)
+        torch.nn.init.xavier_uniform_(self.fc2.weight)
+        torch.nn.init.zeros_(self.fc2.bias.data)
+
+    def forward(self, image_features, question_features):
+        """returns the logits for the answers"""
+        # concatenate the features
+        combined_features = torch.cat((image_features, question_features), dim=1).to(self.device)  
+        combined_features /= combined_features.clone().norm(dim=-1, keepdim=True) 
+        combined_features = combined_features.to(torch.float32)
+        combined_features = self.fc1(combined_features)
+        combined_features = torch.nn.functional.relu(combined_features)
+        combined_features = self.fc2(combined_features)
+        combined_features = torch.nn.functional.relu(combined_features)
+        
+        return combined_features
+    
+    def save(self, path):
+        # do not save the clip model as it is not trained
+        path = os.path.join("results_training_CLIP", path)
+        torch.save(self.fc1.state_dict(), path + 'fc1.pth')
+        torch.save(self.fc2.state_dict(), path + 'fc2.pth')
+
+    def load(self, path):
+        path = os.path.join("results_training_CLIP", path)
+        self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
+        self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
+
+class VQA_Model_Discr_Siamese(torch.nn.Module):
+    """Model that uses already calulated features"""
+    def __init__(self, model, device):
+        super().__init__()
+        self.model = model
+        self.device = device
+        self.fc1 = torch.nn.Linear(1024, 512).to(self.device)
+        self.fc2 = torch.nn.Linear(512, 128).to(self.device)
+        self.fc3 = torch.nn.Linear(128, 32).to(self.device)
+        self.fc4 = torch.nn.Linear(64, 1).to(self.device)
+        self.initialize_parameters()
+
+
+    def initialize_parameters(self):
+        # Apply Xavier/Glorot initialization to the linear layer
+        torch.nn.init.xavier_uniform_(self.fc1.weight)
+        torch.nn.init.zeros_(self.fc1.bias.data)
+        torch.nn.init.xavier_uniform_(self.fc2.weight)
+        torch.nn.init.zeros_(self.fc2.bias.data)
+        torch.nn.init.xavier_uniform_(self.fc3.weight)
+        torch.nn.init.zeros_(self.fc3.bias.data)
+        torch.nn.init.xavier_uniform_(self.fc4.weight)
+        torch.nn.init.zeros_(self.fc4.bias.data)
+
+    def siamese(self, x):
+        z = torch.nn.functional.relu(self.fc2(x))     # Size([bs, 512])
+        z = torch.nn.functional.relu(self.fc3(z))     # Size([bs, 256])
+        return z
+
+    def forward(self, image_features, question_features, target_features):
+        """returns the logits for the answers"""
+        # concatenate the features
+        combined_features = torch.cat((image_features, question_features), dim=1).to(self.device)  
+        combined_features /= combined_features.clone().norm(dim=-1, keepdim=True) 
+        combined_features = combined_features.to(torch.float32)
+        combined_features = self.fc1(combined_features)
+        combined_features = torch.nn.functional.relu(combined_features)
+        
+        output1 = self.siamese(combined_features)
+        output2 = self.siamese(target_features)
+
+        concat = torch.cat((output1, output2), dim=1).to(self.device)  
+        output = self.fc4(concat)
+        return output
+    
+    def save(self, path):
+        # do not save the clip model as it is not trained
+        path = os.path.join("results_training_CLIP", path)
+        torch.save(self.fc1.state_dict(), path + 'fc1.pth')
+        torch.save(self.fc2.state_dict(), path + 'fc2.pth')
+        torch.save(self.fc3.state_dict(), path + 'fc3.pth')
+        torch.save(self.fc4.state_dict(), path + 'fc4.pth')
+
+    def load(self, path):
+        path = os.path.join("results_training_CLIP", path)
+        self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
+        self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
+        self.fc3.load_state_dict(torch.load(path + 'fc3.pth'))
+        self.fc4.load_state_dict(torch.load(path + 'fc4.pth'))
 
 class VQA_Model_Precalc(torch.nn.Module):
     """Model that uses already calulated features"""
@@ -269,6 +371,11 @@ class VQA_Model_Precalc(torch.nn.Module):
         self.fc2 = torch.nn.Linear(896, 768).to(self.device)
         self.fc3 = torch.nn.Linear(768, 512).to(self.device)
         self.initialize_parameters()
+
+        #self.dropout = torch.nn.Dropout(0.2)
+
+        print("ga")
+
 
     def initialize_parameters(self):
         # Apply Xavier/Glorot initialization to the linear layer
@@ -306,12 +413,16 @@ class VQA_Model_Precalc(torch.nn.Module):
     
     def save(self, path):
         # do not save the clip model as it is not trained
+        path = os.path.join("results_training_CLIP", path)
         torch.save(self.fc1.state_dict(), path + 'fc1.pth')
         torch.save(self.fc2.state_dict(), path + 'fc2.pth')
+        torch.save(self.fc3.state_dict(), path + 'fc3.pth')
 
     def load(self, path):
+        path = os.path.join("results_training_CLIP", path)
         self.fc1.load_state_dict(torch.load(path + 'fc1.pth'))
         self.fc2.load_state_dict(torch.load(path + 'fc2.pth'))
+        self.fc3.load_state_dict(torch.load(path + 'fc3.pth'))
 
 class VQA_Model_Precalc_Zero(torch.nn.Module):
     """Model that uses already calulated features"""
