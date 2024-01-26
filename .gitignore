@@ -5,6 +5,8 @@ __pycache__/
 # C extensions
 *.so
 *.h5
+*.pth
+*.zip
 
 # Distribution / packaging
 bin/
@@ -13,12 +15,8 @@ dist/
 lib/
 runs/
 
-*.pth
-*.zip
 BLIP_MultipleChoice_ZeroShot/torchVersion/
 Trained_Models/
 Images/
-Images_real/
-Images_abstract/
 Annotations/mscoco_train2014_annotations.json
 results_training_CLIP/
