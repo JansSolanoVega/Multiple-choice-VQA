@@ -9,18 +9,10 @@ __pycache__/
 # Distribution / packaging
 bin/
 build/
-develop-eggs/
 dist/
-eggs/
 lib/
-lib64/
-parts/
-sdist/
-var/
 runs/
-*.egg-info/
-.installed.cfg
-*.eg
+
 *.pth
 *.zip
 FineTuningBLIP/torchVersion/
