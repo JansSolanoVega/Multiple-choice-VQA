@@ -15,7 +15,7 @@ runs/
 
 *.pth
 *.zip
-FineTuningBLIP/torchVersion/
+BLIP_MultipleChoice_ZeroShot/torchVersion/
 Trained_Models/
 Images/
 Images_real/
