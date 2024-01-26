@@ -28,4 +28,5 @@ Trained_Models/
 Images/
 Images_real/
 Images_abstract/
+Annotations/mscoco_train2014_annotations.json
 
