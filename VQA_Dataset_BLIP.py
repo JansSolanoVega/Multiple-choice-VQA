@@ -124,13 +124,13 @@ class VQA_Dataset_TorchVersion(torch.utils.data.Dataset):
 
 class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
     
-    def __init__(self, device, image_size=480, folder_path="H:/FoundationModels/"):
+    def __init__(self, device):
         self.file = None
         self.imgs = None
         self.questions = None
         self.multiple_answers = None
         self.correct_answers = None
-        self.path = folder_path
+
         self.max_length = 20
         self.image_height = 480
         self.image_width = 480
@@ -168,7 +168,7 @@ class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
                 annntoations = (answer_data['annotations'])
                 questions = (question_data['questions'])
                 
-                with h5py.File(self.path + self.fileName, 'a') as hf:
+                with h5py.File(self.fileName, 'a') as hf:
                     for idx, question in enumerate(tqdm(questions[:length], desc="Preprocessing Images")):
                         if idx == 0:
                             imgs_ds = hf.create_dataset('imgs', shape=(length, 3, self.image_height, self.image_width))#, maxshape=(length, 3, self.image_height, self.image_width))
@@ -249,28 +249,13 @@ class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
         self.correct_answers_attention_mask = self.file["correct_answers_attention_mask"]
 
     def __len__(self):
-        return self.length
+        return len(self.imgs)
 
 
     def __getitem__(self, index):
         #if index % 100 == 0:  # Close and reopen the file every 100 batches
         #    print("getitem_100")
         #    self.file.close()
-        
-        with h5py.File(self.path + self.fileName, 'r') as hf:
-            imgs = torch.from_numpy(hf["imgs"][index]).unsqueeze(0).to(self.device)
-            question = {"input_ids": torch.from_numpy(hf["questions_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["questions_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
-            multiple_answer = {"input_ids": torch.from_numpy(hf["multiple_answers_input_ids"][index]).type(torch.int64).to(self.device), "attention_mask":torch.from_numpy(hf["multiple_answers_attention_mask"][index]).type(torch.int64).to(self.device)}
-            correct_answer = {"input_ids": torch.from_numpy(hf["correct_answers_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["correct_answers_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
-            encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
-        
-        encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
-        
-        # delete variables to save memory
-        
-        #del question, multiple_answer, correct_answer, imgs
-
-        """
         question = {"input_ids": torch.from_numpy(self.questions_input_ids[index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(self.questions_attention_mask[index]).type(torch.int64).unsqueeze(0).to(self.device)}
         multiple_answer = {"input_ids": torch.from_numpy(self.multiple_answers_input_ids[index]).type(torch.int64).to(self.device), "attention_mask":torch.from_numpy(self.multiple_answers_attention_mask[index]).type(torch.int64).to(self.device)}
         correct_answer = {"input_ids": torch.from_numpy(self.correct_answers_input_ids[index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(self.correct_answers_attention_mask[index]).type(torch.int64).unsqueeze(0).to(self.device)}
@@ -279,71 +264,6 @@ class VQA_Dataset_preloaded_TorchVersion(torch.utils.data.Dataset):
 
         encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer, 'answer_types': answer_types}
         return  encoding
-    
-    def __init__(self, device, image_size=480, folder_path="H:/FoundationModels/"):
-        self.file = None
-        self.imgs = None
-        self.questions = None
-        self.multiple_answers = None
-        self.correct_answers = None
-        self.path = folder_path
-        self.max_length = 20
-        self.image_height = image_size
-        self.image_width = image_size
-        self.num_answers = 18
-        self.device = device
-      
-    def load(self, fileName="embeddingsBLIP.h5", length=-1):
-        self.fileName = fileName
-        print(self.path + fileName)
-        self.file = h5py.File(self.path + fileName, 'r')
-        self.imgs = self.file["imgs"]#[:length]
-        
-        self.length = self.imgs.shape[0]
-        self.questions_input_ids = self.file["questions_input_ids"]#[:length]
-        self.questions_attention_mask = self.file["questions_attention_mask"]#[:length]
-        self.multiple_answers_input_ids = self.file["multiple_answers_input_ids"]#[:length]
-        self.multiple_answers_attention_mask = self.file["multiple_answers_attention_mask"]#[:length]
-        self.correct_answers_input_ids = self.file["correct_answers_input_ids"]#[:length]
-        self.correct_answers_attention_mask = self.file["correct_answers_attention_mask"]#[:length]
-        
-
-
-    def __len__(self):
-        return self.length
-
-
-    def __getitem__(self, index):
-        #if index % 100 == 0:  # Close and reopen the file every 100 batches
-        #    print("getitem_100")
-        #    self.file.close()
-        """
-        with h5py.File(self.path + self.fileName, 'r') as hf:
-            imgs = torch.from_numpy(hf["imgs"][index]).unsqueeze(0).to(self.device)
-            question = {"input_ids": torch.from_numpy(hf["questions_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["questions_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
-            multiple_answer = {"input_ids": torch.from_numpy(hf["multiple_answers_input_ids"][index]).type(torch.int64).to(self.device), "attention_mask":torch.from_numpy(hf["multiple_answers_attention_mask"][index]).type(torch.int64).to(self.device)}
-            correct_answer = {"input_ids": torch.from_numpy(hf["correct_answers_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["correct_answers_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
-            encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
-        
-        encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
-        
-        # delete variables to save memory
-        
-        #del question, multiple_answer, correct_answer, imgs
-
-        return encoding
-        """
-        # load without dict
-        imgs = torch.from_numpy(self.imgs[index]).to(self.device)
-        question_input_ids = torch.from_numpy(self.questions_input_ids[index]).type(torch.int64).to(self.device)
-        question_attention_mask = torch.from_numpy(self.questions_attention_mask[index]).type(torch.int64).to(self.device)
-        multiple_answers_input_ids = torch.from_numpy(self.multiple_answers_input_ids[index]).type(torch.int64).to(self.device)
-        multiple_answers_attention_mask = torch.from_numpy(self.multiple_answers_attention_mask[index]).type(torch.int64).to(self.device)
-        correct_answers_input_ids = torch.from_numpy(self.correct_answers_input_ids[index]).type(torch.int64).to(self.device)
-        correct_answers_attention_mask = torch.from_numpy(self.correct_answers_attention_mask[index]).type(torch.int64).to(self.device)
-        
-        return imgs, question_input_ids, question_attention_mask, multiple_answers_input_ids, multiple_answers_attention_mask, correct_answers_input_ids, correct_answers_attention_mask
-           
 
 
 class VQA_Dataset_preloaded(torch.utils.data.Dataset):
