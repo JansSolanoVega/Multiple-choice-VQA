@@ -21,7 +21,7 @@ runs/
 *.egg-info/
 .installed.cfg
 *.eg
-
+*.pth
 *.zip
 FineTuningBLIP/torchVersion/
 Trained_Models/
