@@ -2,7 +2,9 @@ import torch
 import transformers
 import torch.nn.functional as F
 import os
-
+"""
+Models used for training a NN that receives as input CLIP encodings and outputs MC correct answer
+"""
 class VQA_Model(torch.nn.Module):
     """uses the model from clip like in evaluation method"""
     def __init__(self, model, device):
