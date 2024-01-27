@@ -395,7 +395,108 @@ class VQA_Dataset_preloaded(torch.utils.data.Dataset):
         answer_choices = torch.from_numpy(self.answer_choices[index]).type(torch.int64).to(self.device)
         encoding = {'input_ids':input_ids, 'attention_mask':attention_mask, 'pixel_values': pixel_values, 'labels':labels, 'answer_choices':answer_choices}
         return  encoding
+    
+class VQA_Dataset_preloaded_alternativ(torch.utils.data.Dataset):
+    
+    def __init__(self, device, image_size=480, folder_path="H:/FoundationModels/"):
+        self.file = None
+        self.imgs = None
+        self.questions = None
+        self.multiple_answers = None
+        self.correct_answers = None
+        self.path = folder_path
+        self.max_length = 20
+        self.image_height = image_size
+        self.image_width = image_size
+        self.num_answers = 18
+        self.device = device
+      
+    def load(self, fileName="embeddingsBLIP.h5", length=100):
+        self.fileName = fileName
+        print(self.path + fileName)
+        self.file = h5py.File(self.path + fileName, 'r')
+        self.imgs = self.file["imgs"]#[:length]
+        
+        self.length = self.imgs.shape[0]
+        self.questions_input_ids = self.file["questions_input_ids"]#[:length]
+        self.questions_attention_mask = self.file["questions_attention_mask"]#[:length]
+        self.multiple_answers_input_ids = self.file["multiple_answers_input_ids"]#[:length]
+        self.multiple_answers_attention_mask = self.file["multiple_answers_attention_mask"]#[:length]
+        self.correct_answers_input_ids = self.file["correct_answers_input_ids"]#[:length]
+        self.correct_answers_attention_mask = self.file["correct_answers_attention_mask"]#[:length]
+        
 
+
+    def __len__(self):
+        return self.length
+
+    def get_random_image(self, tokenizer):
+        index = np.random.randint(0, self.length)
+        # decode image, question, answers and correct answer
+        img = self.imgs[index]
+        question_input_ids = self.questions_input_ids[index]
+        question_attention_mask = self.questions_attention_mask[index]
+        multiple_answers_input_ids = self.multiple_answers_input_ids[index]
+        multiple_answers_attention_mask = self.multiple_answers_attention_mask[index]
+        correct_answers_input_ids = self.correct_answers_input_ids[index]
+        correct_answers_attention_mask = self.correct_answers_attention_mask[index]
+        # decode
+        question = tokenizer.decode(question_input_ids, skip_special_tokens=True)
+        multiple_answers = []
+        for answer in multiple_answers_input_ids:
+
+            multiple_answers.append(tokenizer.decode(answer, skip_special_tokens=True))
+        correct_answer = tokenizer.decode(correct_answers_input_ids, skip_special_tokens=True)
+        # plot image
+        print("Question: ", question)
+        print("Possible answers: ", multiple_answers)
+        print("Correct answer: ", correct_answer)
+        # img shape is (3, 640, 640) to matplotlib format
+        img = np.transpose(img, (1,2,0))
+        #normalize image values
+        img = img - np.min(img)
+        img = img / np.max(img)
+        img = np.uint8(img * 255)
+        
+
+
+        plt.imshow(img)
+        plt.show()
+
+        return img, question, multiple_answers, correct_answer
+
+
+    def __getitem__(self, index):
+        #if index % 100 == 0:  # Close and reopen the file every 100 batches
+        #    print("getitem_100")
+        #    self.file.close()
+        """
+        with h5py.File(self.path + self.fileName, 'r') as hf:
+            imgs = torch.from_numpy(hf["imgs"][index]).unsqueeze(0).to(self.device)
+            question = {"input_ids": torch.from_numpy(hf["questions_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["questions_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
+            multiple_answer = {"input_ids": torch.from_numpy(hf["multiple_answers_input_ids"][index]).type(torch.int64).to(self.device), "attention_mask":torch.from_numpy(hf["multiple_answers_attention_mask"][index]).type(torch.int64).to(self.device)}
+            correct_answer = {"input_ids": torch.from_numpy(hf["correct_answers_input_ids"][index]).type(torch.int64).unsqueeze(0).to(self.device), "attention_mask":torch.from_numpy(hf["correct_answers_attention_mask"][index]).type(torch.int64).unsqueeze(0).to(self.device)}
+            encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
+        
+        encoding = {'imgs':imgs, 'questions': question, 'multiple_answers': multiple_answer, 'correct_answers': correct_answer}
+        
+        # delete variables to save memory
+        
+        #del question, multiple_answer, correct_answer, imgs
+
+        return encoding
+        """
+        # load without dict
+        imgs = torch.from_numpy(self.imgs[index]).to(self.device)
+        question_input_ids = torch.from_numpy(self.questions_input_ids[index]).type(torch.int64).to(self.device)
+        question_attention_mask = torch.from_numpy(self.questions_attention_mask[index]).type(torch.int64).to(self.device)
+        multiple_answers_input_ids = torch.from_numpy(self.multiple_answers_input_ids[index]).type(torch.int64).to(self.device)
+        multiple_answers_attention_mask = torch.from_numpy(self.multiple_answers_attention_mask[index]).type(torch.int64).to(self.device)
+        correct_answers_input_ids = torch.from_numpy(self.correct_answers_input_ids[index]).type(torch.int64).to(self.device)
+        correct_answers_attention_mask = torch.from_numpy(self.correct_answers_attention_mask[index]).type(torch.int64).to(self.device)
+        
+        return imgs, question_input_ids, question_attention_mask, multiple_answers_input_ids, multiple_answers_attention_mask, correct_answers_input_ids, correct_answers_attention_mask
+           
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"

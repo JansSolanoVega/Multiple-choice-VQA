@@ -89,13 +89,22 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     self.images.append(preprocess(img.resize((400, 400), Image.Resampling.LANCZOS)).unsqueeze(0).to(device))
                     # can we process all images at once?
                     
-    def load(self, preprocess, device , name = 'train', length=100, mode="scale"):
+    def load(self, preprocess, device , name = 'train', length=100, mode="scale", type="real"):
         self.device = device
         self.preprocess = preprocess
         self.name = name
         "load without preprocessing or tokenizing"
-        with open('Annotations/MultipleChoice_mscoco_'+ name + '2014_questions.json', 'r') as question_file:
-            with open('Annotations/mscoco_'+ name + '2014_annotations.json', 'r') as answer_file:
+        self.type = type
+        if type == "real":
+            path_questions = 'Annotations/MultipleChoice_mscoco_'+ name + '2014_questions.json'
+            path_answers = 'Annotations/mscoco_'+ name + '2014_annotations.json'
+        elif type == "abstract":
+            path_questions = 'Annotations/MultipleChoice_abstract_v002_val2015_questions.json'
+            path_answers = 'Annotations/abstract_v002_val2015_annotations.json'
+        else:
+            raise ValueError("type must be real or abstract")
+        with open(path_questions, 'r') as question_file:
+            with open(path_answers, 'r') as answer_file:
                 question_data = json.load(question_file)
                 answer_data = json.load(answer_file)
 
@@ -127,22 +136,39 @@ class VQA_Dataset(torch.utils.data.Dataset):
                     self.questions.append(question_text)
                     self.answers.append(answers_text)
                     
-                    
-
+                                                
 
     def get_random_image(self, name="train"):
             random_idx = random.randint(0, len(self.image_ids))     
             image_id = int(self.image_ids[random_idx])
 
-            image_id = str(image_id).zfill(12)
-            img = Image.open("Images_real/" + name + "2014/COCO_" + name + "2014_{}.jpg".format(image_id)).convert('RGB')
+            if self.type == "abstract":
+                img_path = "Images_abstract/abstract_v002_val2015_0000000{}.png".format(image_id)
+                img = Image.open(img_path).convert('RGB')
+            else:
+                image_id = str(image_id).zfill(12)
+
+                img_path = "Images_real/" + name + "2014/COCO_" + name + "2014_{}.jpg".format(image_id)
+                img = Image.open(img_path).convert('RGB')
             print("image id: ", image_id)
             img.show()
             print("question: ", self.questions[random_idx])
             print("answers: ", self.answers[random_idx])
-            return self.questions[random_idx], self.answers[random_idx], self.correct_answers[random_idx]
+            print("correct answer: ", self.correct_answers[random_idx])
+            return self.questions[random_idx], self.answers[random_idx], self.correct_answers[random_idx], image_id, img_path
                     
-                    
+    def get_image(self, image_id, question_text, name="train"):
+        # find all infos for  image id and question text
+
+        for idx, question in enumerate(self.questions):
+            if question == question_text and self.image_ids[idx] == image_id:
+                if self.type == "abstract":
+                    img_path = "Images_abstract/abstract_v002_val2015_0000000{}.png".format(image_id)
+                elif self.type == "real":
+                    image_id = str(image_id).zfill(12)
+                    img_path = "Images_real/" + name + "2014/COCO_" + name + "2014_{}.jpg".format(image_id)
+                return self.questions[idx], self.answers[idx], self.correct_answers[idx], self.image_ids[idx], img_path
+               
 
                     
 
