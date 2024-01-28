@@ -15,7 +15,6 @@ dist/
 lib/
 runs/
 
-BLIP_MultipleChoice_ZeroShot/torchVersion/
 Trained_Models/
 Images/
 Annotations/mscoco_train2014_annotations.json
