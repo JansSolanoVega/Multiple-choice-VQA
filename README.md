@@ -34,7 +34,7 @@ This approach uses the BLIP model for the VQA task. To use it for Multiple Choic
   <img width="400" height="300" src="/media/blip_imagev2.png">
 </p>
 
-1. To evaluate and train BLIP, execure notebook named [blip_train.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/BLIP/blip_train.ipynb)
+1. To evaluate and train BLIP, execure notebook named [blip_approach.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/BLIP/blip_approach.ipynb)
 2. To use the real or abstract dataset use only execute the one corresponding cell
 3. To precalculate BLIP preprocessing/tokenization run also the corresponding cell in the same notebook
 
