@@ -3,7 +3,7 @@
 ## Table of contents
    1. [Installation](#installation)
    1. [Dataset](#dataset)
-   1. [CLIP and T5 Approach](#clip-approach)
+   1. [CLIP and T5 Approach](#clip-and-t5-approach)
    1. [BLIP Approach](#blip-approach)
    1. [Grad-CAM](#gradcam)
       
@@ -15,7 +15,7 @@ pip install -r requirements.txt
 ## Dataset
 Images, questions and MC answers used for training in this work can be found in [VQA v1 Dataset](https://visualqa.org/vqa_v1_download.html). 
 
-## CLIP Approach
+## CLIP and T5 Approach
 <p align="center">
   <img width="400" height="300" src="/media/first_approach.png">
 </p>
