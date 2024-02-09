@@ -31,7 +31,7 @@ First approach adopts CLIP similarly to zero-shot recognition, employing an MLP 
 This approach uses the BLIP model for the VQA task. To use it for Multiple Choice VQA we us the rank mode. There the model does not produce a new sentence, but ranks the possible answers, in order of the likeliness that the decoder would generate this answer.
 
 <p align="center">
-  <img width="400" height="300" src="/media/blip_approach.png">
+  <img width="400" height="300" src="/media/blip_imagev2.png">
 </p>
 
 1. To evaluate and train BLIP, execure notebook named [blip.ipynb](BLIP/https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/BLIP/blip.ipynb)
