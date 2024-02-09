@@ -17,13 +17,15 @@ Images, questions and MC answers used for training in this work can be found in 
 
 ## CLIP and T5 Approach
 First approach adopts CLIP similarly to zero-shot recognition, employing an MLP to integrate question and image embeddings. Subsequently, it evaluates the output against answer embeddings using cosine similarity to identify the answer with the highest score. Additionally, T5 was explored as a means to enhance this approach, serving as a prompt engineer for CLIP.
+
 <p align="center">
   <img width="400" height="300" src="/media/first_approach.png">
 </p>
+
 1. To check demonstrations provided for T5, navigate to [demonstration_t5.json](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/TemplateGeneration_T5/demonstration_t5.json). Afterwards, to evaluate the model's capability as a template generator for answers using these demonstrations, run the notebook located at [t5_approach.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/TemplateGeneration_T5/t5_approach.ipynb).
 2. To train the CLIP or CLIP+T5 approach, execute the notebook named [Train NN - T5+CLIP.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/Train%20NN%20-%20T5%2BCLIP.ipynb). To switch from the clip-only to the T5-enhanced approach, modify the `sentences` variable to `True`. Additionally, you can select the neural network architecture to train from the [models.py](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/models.py) file.<br>For a special architecture experiment using siamese networks instead of the traditional MLP, refer to the notebook titled [Train Siamese NN - T5+CLIP.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/Train%20Siamese%20NN%20-%20T5%2BCLIP.ipynb). However, the results were found to be inferior compared to those of a MLP.
-3. To precalculate CLIP and CLIP+T5 embeddings for faster training, refer to `compute_store` method from [VQA_Dataset_CLIP](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/VQA_Dataset_CLIP.py#L273) and [VQA_Dataset_CLIP_T5](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/TemplateGeneration_T5/VQA_Dataset_CLIP_T5.py#L27), respectively. 
- 
+3. To precalculate CLIP and CLIP+T5 embeddings for faster training, refer to `compute_store` method from [VQA_Dataset_CLIP](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/VQA_Dataset_CLIP.py#L273) and [VQA_Dataset_CLIP_T5](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/TemplateGeneration_T5/VQA_Dataset_CLIP_T5.py#L27), respectively.
+   
 ## BLIP Approach
 
 ## GradCAM
