@@ -1,4 +1,5 @@
 # Multiple-choice-VQA
+This project is for the Foundation Models lecture from the University of Stuttgart. The Task is Multiple choice Visual Question Answering
 
 ## Table of contents
    1. [Installation](#installation)
@@ -27,6 +28,15 @@ First approach adopts CLIP similarly to zero-shot recognition, employing an MLP 
 3. To precalculate CLIP and CLIP+T5 embeddings for faster training, refer to `compute_store` method from [VQA_Dataset_CLIP](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/VQA_Dataset_CLIP.py#L273) and [VQA_Dataset_CLIP_T5](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/TemplateGeneration_T5/VQA_Dataset_CLIP_T5.py#L27), respectively.
    
 ## BLIP Approach
+This approach uses the BLIP model for the VQA task. To use it for Multiple Choice VQA we us the rank mode. There the model does not produce a new sentence, but ranks the possible answers, in order of the likeliness that the decoder would generate this answer.
+
+<p align="center">
+  <img width="400" height="300" src="/media/blip_approach.png">
+</p>
+
+1. To evaluate and train BLIP, execure notebook named [blip.ipynb](BLIP/https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/BLIP/blip.ipynb)
+2. To use the real or abstract dataset use only execute the one corresponding cell
+3. To precalculate BLIP preprocessing/tokenization run also the corresponding cell in the same notebook
 
 ## GradCAM
 <p align="center">
@@ -34,3 +44,5 @@ First approach adopts CLIP similarly to zero-shot recognition, employing an MLP 
 </p>
 
 Even though Grad-CAM was originally proposed for CNN approaches, its idea can be extrapolated to the BLIP transformer-based architecture. For this purpose, for BLIP Image-grounded text encoder is chosen and to analyze the significance of attention maps, gradients of the correct Multiple Choice (MC) answer are calculated with respect to the cross-attention maps at a layer determined empirically, notably the 8th layer. This empirical selection process idea performed in [ALBEF](https://github.com/salesforce/ALBEF), aims to identify the layer specializing in certain tasks, such as, in our case, localizations. For getting BLIP heatmaps with Grad-CAM, run the notebook [GradCam_BLIP.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/BLIP/GradCam_BLIP.ipynb).
+
+For Heatmaps for the CLIP model, run notebook [CLIP_GradCAM_Visualization.ipynb](https://github.com/JansSolanoVega/Multiple-choice-VQA/blob/main/CLIP_GradCAM_Visualization.ipynb). Which is a modified version from
